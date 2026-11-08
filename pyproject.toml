@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "weight-gym"
+version = "0.1.0"
+description = "Can AI find what is broken inside another AI, and fix it?"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = ["numpy>=1.24"]
+
+[project.optional-dependencies]
+gemini = ["google-genai"]
+claude = ["anthropic"]
+openai = ["openai"]
+all = ["google-genai", "anthropic", "openai"]
+
+[project.scripts]
+weight-gym = "weight_gym.cli:main"
+
+[project.urls]
+Homepage = "https://ybkim95.github.io/weight-gym/"
+
+[tool.setuptools]
+packages = ["weight_gym"]
