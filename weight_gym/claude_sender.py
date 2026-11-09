@@ -9,9 +9,11 @@ def claude(model):
     def send(m):
         messages.append({"role": "user", "content": m})
         r = client.messages.create(model=model, max_tokens=16000, messages=messages)
+        send.usage["input"] += r.usage.input_tokens; send.usage["output"] += r.usage.output_tokens  # output includes thinking
         # append full content (thinking blocks included) so history stays append-only
         messages.append({"role": "assistant", "content": r.content})
         if r.stop_reason == "refusal":
             return ""
         return "".join(b.text for b in r.content if b.type == "text")
+    send.usage = {"input": 0, "output": 0}
     return send

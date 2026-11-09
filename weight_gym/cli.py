@@ -24,7 +24,8 @@ def run(name, policy, accesses, hint, reps, only):
                         continue
                     env = make(t["id"], access, hint, seed=rep)
                     extra = policy(env, env.hint)
-                    r = {"method": f"agent:{name}", **evaluate(env), "row": t["row"], "rep": rep}
+                    r = {"method": f"agent:{name}", **evaluate(env), "row": t["row"], "rep": rep,
+                         "tokens": getattr(env, "usage", None)}
                     f.write(json.dumps(r) + "\n"); f.flush()
                     if extra:  # a transcript, for LLM agents
                         logs = RESULTS / "transcripts" / name; logs.mkdir(parents=True, exist_ok=True)
@@ -111,7 +112,10 @@ def main():
                 sender = lambda m: agent.openai_compat(m, a.base_url)
             else:
                 sender = agent.gemini
-            policy = lambda env, hint: agent.run(env, sender(a.model), a.turns, hint)
+            def policy(env, hint):
+                send = sender(a.model)
+                env.usage = send.usage  # token counts end up in the results row
+                return agent.run(env, send, a.turns, hint)
             out = run(a.model.split("/")[-1], policy, accesses, a.hint, a.reps, a.only)
         stats.report(out)
 

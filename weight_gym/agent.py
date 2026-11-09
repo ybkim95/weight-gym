@@ -101,9 +101,13 @@ def openai_compat(model, base_url):
 
     def send(m):
         messages.append({"role": "user", "content": m})
-        text = client.chat.completions.create(model=model, messages=messages, max_tokens=8192).choices[0].message.content or ""
+        r = client.chat.completions.create(model=model, messages=messages, max_tokens=8192)
+        if r.usage:
+            send.usage["input"] += r.usage.prompt_tokens; send.usage["output"] += r.usage.completion_tokens
+        text = r.choices[0].message.content or ""
         messages.append({"role": "assistant", "content": text})
         return text
+    send.usage = {"input": 0, "output": 0}
     return send
 
 
@@ -117,10 +121,17 @@ def gemini(model):
     def send(m, client=client):  # holding client keeps it from being closed by GC
         for attempt in range(4):
             try:
-                return chat.send_message(m).text or ""
+                r = chat.send_message(m)
+                u = r.usage_metadata
+                if u:  # thinking tokens are billed as output but never appear in the reply
+                    send.usage["input"] += u.prompt_token_count or 0
+                    send.usage["output"] += (u.candidates_token_count or 0) + (u.thoughts_token_count or 0)
+                    send.usage["thinking"] += u.thoughts_token_count or 0
+                return r.text or ""
             except Exception as e:  # rate limits / transient 5xx
                 if attempt == 3:
                     raise
                 print(f"  retry after {type(e).__name__}: {str(e)[:120]}")
                 time.sleep(10 * 2 ** attempt)
+    send.usage = {"input": 0, "output": 0, "thinking": 0}
     return send
