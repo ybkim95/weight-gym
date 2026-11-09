@@ -8,9 +8,11 @@ Project page: https://ybkim95.github.io/weight-gym/
 
 | Model | Find and fix | Fix only (told where) | Backdoors found |
 |---|---|---|---|
+| Gemini 3.8 Flash | 0.26 | 0.86 | 0 / 60 |
+| Claude Sonnet 5.5 | 0.26 | 0.85 | 2 / 60 |
 | Gemma 4 31B | 0.25 | 0.45 | 11 / 60 |
-| Gemini 3.8 Flash | 0.24 | 0.79 | 0 / 60 |
 | Qwen3.5 27B | 0.24 | 0.75 | 5 / 60 |
+| Claude Haiku 5.5 | 0.22 | 0.74 | 7 / 60 |
 | Gemini 3.5 Flash-Lite | 0.07 | 0.66 | 4 / 60 |
 | *Ten-line heuristic, no LLM* | 0.19 | | |
 | *Fine-tuning only, no LLM* | 0.00 | | |

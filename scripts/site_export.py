@@ -14,6 +14,7 @@ MODELS = [  # (result file stem, display name, org, open weights)
     ("gemma-4-31B-it", "Gemma 4 31B", "Google", True),
     ("Qwen3.5-27B", "Qwen3.5 27B", "Alibaba", True),
     ("claude-haiku-5-5", "Claude Haiku 5.5", "Anthropic", False),
+    ("claude-sonnet-5-5", "Claude Sonnet 5.5", "Anthropic", False),
 ]
 CONDS = ["blackbox", "internal", "blackbox+hint", "internal+hint"]
 FAULTS = ["patch_backdoor", "blend_backdoor", "spurious_marker"]
