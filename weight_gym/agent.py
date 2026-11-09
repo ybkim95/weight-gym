@@ -115,23 +115,31 @@ def gemini(model):
     """Uses GEMINI_API_KEY, or Vertex via GOOGLE_GENAI_USE_VERTEXAI=true + GOOGLE_CLOUD_PROJECT + GOOGLE_CLOUD_LOCATION."""
     import time
     from google import genai
+    from google.genai import types
     client = genai.Client()
-    chat = client.chats.create(model=model)
+    # We keep the history ourselves: the SDK's chat drops an empty reply together with the user turn
+    # before it, which silently removed the task prompt whenever a model answered turn 0 with thinking only.
+    contents = []
 
     def send(m, client=client):  # holding client keeps it from being closed by GC
+        contents.append(types.Content(role="user", parts=[types.Part(text=m)]))
         for attempt in range(4):
             try:
-                r = chat.send_message(m)
-                u = r.usage_metadata
-                if u:  # thinking tokens are billed as output but never appear in the reply
-                    send.usage["input"] += u.prompt_token_count or 0
-                    send.usage["output"] += (u.candidates_token_count or 0) + (u.thoughts_token_count or 0)
-                    send.usage["thinking"] += u.thoughts_token_count or 0
-                return r.text or ""
+                r = client.models.generate_content(model=model, contents=contents)
+                break
             except Exception as e:  # rate limits / transient 5xx
                 if attempt == 3:
                     raise
                 print(f"  retry after {type(e).__name__}: {str(e)[:120]}")
                 time.sleep(10 * 2 ** attempt)
+        u = r.usage_metadata
+        if u:  # thinking tokens are billed as output but never appear in the reply
+            send.usage["input"] += u.prompt_token_count or 0
+            send.usage["output"] += (u.candidates_token_count or 0) + (u.thoughts_token_count or 0)
+            send.usage["thinking"] += u.thoughts_token_count or 0
+        reply = r.candidates[0].content if r.candidates and r.candidates[0].content and r.candidates[0].content.parts else None
+        # keep the model turn as returned (thought signatures included); an empty one becomes a visible placeholder
+        contents.append(reply or types.Content(role="model", parts=[types.Part(text="(empty reply)")]))
+        return (r.text or "") if reply else ""
     send.usage = {"input": 0, "output": 0, "thinking": 0}
     return send

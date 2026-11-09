@@ -43,8 +43,9 @@ pip install -e ".[all]"
 GEMINI_API_KEY=... weight-gym agent --model gemini-3.8-flash --reps 3
 GOOGLE_GENAI_USE_VERTEXAI=true GOOGLE_CLOUD_PROJECT=... GOOGLE_CLOUD_LOCATION=global weight-gym agent --model gemini-3.8-flash
 
-# Claude
+# Claude, with an API key or through Vertex AI (no key needed when GOOGLE_CLOUD_PROJECT is set)
 ANTHROPIC_API_KEY=... weight-gym agent --model claude-opus-5-5
+GOOGLE_CLOUD_PROJECT=... weight-gym agent --model claude-opus-5-5
 
 # Anything behind an OpenAI-compatible endpoint, e.g. an open model on vLLM
 weight-gym agent --model Qwen3.5-27B --base-url http://localhost:8000/v1
